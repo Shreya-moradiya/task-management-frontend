@@ -138,9 +138,9 @@ export default function Login() {
                     </p>
                 </div>
 
-                <p className="mt-6 text-center text-xs text-stone-400">
+                {/* <p className="mt-6 text-center text-xs text-stone-400">
                     By signing in, you agree to our Terms of Service and Privacy Policy.
-                </p>
+                </p> */}
             </div>
         </div>
     );
