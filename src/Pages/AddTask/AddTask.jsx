@@ -45,7 +45,7 @@ const AddTask = ({ isOpen, onClose }) => {
                 title: 'Task Created',
                 text: 'Your task has been created successfully!',
                 confirmButtonColor: '#f16022',
-                timer: 2000,
+                timer:2000,
                 showConfirmButton: false,
             })
 

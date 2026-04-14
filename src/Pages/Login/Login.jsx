@@ -20,6 +20,15 @@ export default function Login() {
                 localStorage.setItem("authToken", response.token);
             }
 
+            const companyId =
+                response?.companyId ??
+                response?.companyID ??
+                response?.user?.companyId ??
+                response?.user?.companyID;
+            if (companyId != null && String(companyId).trim() !== "") {
+                localStorage.setItem("companyId", String(companyId));
+            }
+
             setFormData((prev) => ({ ...prev, password: "", email: "", role: "", rememberMe: false, ...response }));
             // setFormData(response)
             navigate("/dashboard");
@@ -29,15 +38,16 @@ export default function Login() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-light via-primary/40 to-primary-dark px-4 py-12">
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/30 rounded-full blur-3xl" />
-                <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-primary-dark/40 rounded-full blur-3xl" />
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-primary/20 rounded-full blur-3xl" />
-            </div>
+        <div
+            className="min-h-screen flex items-center justify-center px-4 py-12"
+            style={{
+                background: `radial-gradient(circle at 95% 5%, rgba(207,232,243,0.9) 0%, rgba(207,232,243,0.6) 18%, rgba(207,232,243,0.25) 30%, transparent 45%),
+                                    linear-gradient(135deg, rgba(245,239,232,1) 55%, rgba(235,244,248,0.4) 75%, rgba(220,236,244,0.5) 100%)`,
+            }}
+        >
 
             <div className="relative w-full max-w-md">
-                <div className="bg-white/95 backdrop-blur-xl border border-primary/30 rounded-2xl shadow-xl shadow-primary/10 p-8 sm:p-10">
+                <div className="bg-white/95 backdrop-blur-xl border border-[#f16022]/25 rounded-2xl shadow-xl shadow-[#f16022]/10 p-8 sm:p-10">
                     <div className="text-center mb-8">
                         <h1 className="text-2xl sm:text-3xl font-bold text-stone-800 tracking-tight">
                             Welcome back
@@ -60,7 +70,7 @@ export default function Login() {
                                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                 required
                                 placeholder="you@example.com"
-                                className="w-full px-4 py-3 rounded-xl bg-stone-50 border border-stone-200 text-stone-800 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-shadow"
+                                className="w-full px-4 py-3 rounded-xl bg-stone-50 border border-stone-200 text-stone-800 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-[#f16022] focus:border-[#f16022] transition-shadow"
                             />
                         </div>
 
@@ -69,7 +79,7 @@ export default function Login() {
                                 <label htmlFor="password" className="block text-sm font-medium text-stone-700">
                                     Password
                                 </label>
-                                <a href="#" className="text-sm text-primary hover:text-primary-dark transition-colors">
+                                <a href="#" className="text-sm text-[#f16022] hover:text-[#d84f18] transition-colors">
                                     Forgot password?
                                 </a>
                             </div>
@@ -81,7 +91,7 @@ export default function Login() {
                                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                 required
                                 placeholder="••••••••"
-                                className="w-full px-4 py-3 rounded-xl bg-stone-50 border border-stone-200 text-stone-800 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-shadow"
+                                className="w-full px-4 py-3 rounded-xl bg-stone-50 border border-stone-200 text-stone-800 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-[#f16022] focus:border-[#f16022] transition-shadow"
                             />
                         </div>
 
@@ -94,7 +104,7 @@ export default function Login() {
                                 value={formData.role}
                                 onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                                 required
-                                className="w-full px-4 py-3 rounded-xl bg-stone-50 border border-stone-200 text-stone-800 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-shadow appearance-none cursor-pointer"
+                                className="w-full px-4 py-3 rounded-xl bg-stone-50 border border-stone-200 text-stone-800 focus:outline-none focus:ring-2 focus:ring-[#f16022] focus:border-[#f16022] transition-shadow appearance-none cursor-pointer"
                                 style={{
                                     backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2378756e' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
                                     backgroundPosition: "right 0.75rem center",
@@ -115,7 +125,7 @@ export default function Login() {
                                 type="checkbox"
                                 checked={formData.rememberMe}
                                 onChange={(e) => setFormData({ ...formData, rememberMe: e.target.checked })}
-                                className="h-4 w-4 rounded border-stone-300 bg-stone-50 text-primary focus:ring-primary focus:ring-offset-0"
+                                className="h-4 w-4 rounded border-stone-300 bg-stone-50 text-[#f16022] focus:ring-[#f16022] focus:ring-offset-0"
                             />
                             <label htmlFor="remember-me" className="ml-2 block text-sm text-stone-600">
                                 Remember me
@@ -124,7 +134,7 @@ export default function Login() {
 
                         <button
                             type="submit"
-                            className="w-full py-3 px-4 rounded-xl bg-white/95 border-2 border-primary text-primary font-semibold hover:bg-primary/10 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-white transition-colors shadow-md"
+                            className="w-full py-3 px-4 rounded-xl bg-[#f16022] text-white font-semibold hover:bg-[#d84f18] focus:outline-none focus:ring-2 focus:ring-[#f16022] focus:ring-offset-2 focus:ring-offset-white transition-colors shadow-md"
                         >
                             Sign in
                         </button>
@@ -132,9 +142,13 @@ export default function Login() {
 
                     <p className="mt-6 text-center text-sm text-stone-500">
                         Don&apos;t have an account?{" "}
-                        <a href="#" className="font-medium text-primary hover:text-primary-dark transition-colors">
+                        <button
+                            type="button"
+                            onClick={() => navigate("/registration")}
+                            className="font-medium text-[#f16022] hover:text-[#d84f18] transition-colors"
+                        >
                             Sign up
-                        </a>
+                        </button>
                     </p>
                 </div>
 

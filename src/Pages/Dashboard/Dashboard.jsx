@@ -1,13 +1,12 @@
-import { data, useNavigate } from "react-router-dom";
 import { DeleteTask, GetTask, TaskById, TaskTitle } from "./Services/DashboardService";
 import { useEffect, useMemo, useState } from "react";
 import AddTask from "../AddTask/AddTask";
-import { LuLayoutGrid, LuTimer } from "react-icons/lu";
-import { MdChecklist, MdOutlineEdit } from "react-icons/md";
-import { FaRegCheckCircle } from "react-icons/fa";
+import { MdOutlineEdit } from "react-icons/md";
 import { HiOutlineTrash } from "react-icons/hi";
 import EditTask from "../EditTask/EditTask";
 import Swal from "sweetalert2";
+import AddUser from "../AddUser/AddUser";
+import { FiMenu } from "react-icons/fi";
 
 function formatDate(dateString) {
     if (!dateString) return "—";
@@ -26,7 +25,8 @@ export default function Dashboard() {
     const [suggestions, setSuggestions] = useState([]);
     const [selectedTask, setSelectedTask] = useState(null);
     const [loading, setLoading] = useState(false);
-
+    const [addUserOpen, setAddUserOpen] = useState(false);
+    const [menuOpen, setMenuOpen] = useState(false);
     const fetchTasks = async () => {
         try {
             const response = await GetTask();
@@ -144,6 +144,7 @@ export default function Dashboard() {
                     setSelectedTask(null);
                 }}
             />
+            <AddUser isOpen={addUserOpen} onClose={() => setAddUserOpen(false)} />
             <div className="min-h-screen bg-[#f5efe8] pb-6 pt-0 font-sans relative overflow-hidden">
                 {/* Global background shade like design (subtle diagonal sky tint) */}
                 <div className="absolute inset-0 -z-0"
@@ -152,26 +153,38 @@ export default function Dashboard() {
                                     linear-gradient(135deg, rgba(245,239,232,1) 55%, rgba(235,244,248,0.4) 75%, rgba(220,236,244,0.5) 100%)`}} />
                 {/* Header */}
                 <div className="relative z-10">
-                    <div className="flex items-center justify-between mb-6 p-3 border-b border-[hsl(32_28%_84%/0.6)] bg-[hsl(28_33%_96%/0.75)] px-3.5">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-[#f16022] flex items-center justify-center text-white font-bold">
-                                T
+                    <div className="mb-6 flex items-center justify-between gap-2 sm:gap-3 border-b border-[hsl(32_28%_84%/0.6)] bg-[hsl(28_33%_96%/0.75)] p-3 px-3.5">
+                        <div className="flex items-center">
+
+                            {/* Desktop Logo + Title */}
+                            <div className="hidden lg:flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-[#f16022] flex items-center justify-center text-white font-bold">
+                                    T
+                                </div>
+                                <div>
+                                    <p className="text-xs text-gray-700 tracking-widest">WORKSPACE</p>
+                                    <h1 className="text-xl font-semibold">TaskFlow</h1>
+                                </div>
                             </div>
-                            <div>
-                                <p className="text-xs text-gray-700 tracking-widest">WORKSPACE</p>
-                                <h1 className="text-xl font-semibold">TaskFlow</h1>
-                            </div>
+
+                            {/* Mobile Menu Icon */}
+                            <button
+                                className="lg:hidden text-2xl text-gray-800"
+                                onClick={() => setMenuOpen(!menuOpen)}
+                            >
+                                <FiMenu />
+                            </button>
                         </div>
 
-                        <div className="relative flex items-center gap-3">
+                        <div className="relative flex flex-1 items-center gap-2 sm:gap-3 lg:flex-none">
                             <input
                                 placeholder="Search tasks..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
-                                className="px-4 py-2 rounded-2xl bg-white shadow-sm outline-none w-64"
+                                className="w-full px-4 py-2 rounded-2xl bg-white shadow-sm outline-none sm:w-[260px] lg:w-64"
                             />
                             {suggestions.length > 0 && (
-                                <div className="absolute left-0 top-full z-20 mt-1 bg-white rounded-lg shadow-lg w-64 max-h-60 overflow-y-auto border border-gray-100">
+                                <div className="absolute left-0 top-full z-20 mt-1 bg-white rounded-lg shadow-lg w-full sm:w-[260px] lg:w-64 max-h-60 overflow-y-auto border border-gray-100">
                                     {suggestions.map((s, i) => (
                                         <div
                                             key={i}
@@ -188,17 +201,26 @@ export default function Dashboard() {
                                     ))}
                                 </div>
                             )}
-                            <button className="bg-[#f16022] text-white px-4 py-2 rounded-2xl shadow" onClick={() => setAddOpen(true)}>
-                                + New Task
+                            <button
+                                type="button"
+                                className="shrink-0 bg-[#f16022] text-white px-3 sm:px-4 py-2 rounded-2xl shadow hover:bg-[#d84f18] transition-colors whitespace-nowrap text-sm sm:text-base"
+                                onClick={() => setAddUserOpen(true)}
+                            >
+                                <span className="sm:hidden">+ Add</span>
+                                <span className="hidden sm:inline">+ Add employee</span>
                             </button>
                         </div>
                     </div>
                 </div>
 
-                <div className="relative px-60">
+                <div className="relative mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-10">
 
                     {/* Stats */}
-                    <div className="grid grid-cols-4 gap-4 mt-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
+                        <button className="bg-[#f16022] text-white px-4 py-2 rounded-2xl shadow w-full" onClick={() => setAddOpen(true)}>
+                            + New Task
+                        </button>
+
                         {[
                             // { label: "TOTAL TASKS", value: 4, color: "bg-[#f16022]", icon: <LuLayoutGrid size={25} color="#fff" /> },
                             // { label: "TO DO", value: 1, color: "bg-[#1E94B7]", icon: <MdChecklist size={25} color="#fff" /> },
@@ -228,11 +250,16 @@ export default function Dashboard() {
                     </div> */}
 
                     {/* Cards */}
-                    <div className="grid grid-cols-3 gap-6 mt-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mt-6">
                         {displayedTasks.map((task, index) => (
                             <div key={index} className="bg-white rounded-2xl p-5 shadow-sm border-b-4 border-orange-300">
-                                <div className="flex justify-between items-center mb-3">
-                                    <span className="text-xs bg-red-100 text-red-500 px-2 py-1 rounded-full">
+                                <div className="flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-center mb-3">
+                                    <span className={`text-xs bg-red-100 px-2 py-1 rounded-full ${task.priority === "High"
+                                        ? "text-red-600 bg-red-100 border border-red-600"
+                                        : task.priority === "Medium"
+                                            ? "text-yellow-600 bg-yellow-100 border border-yellow-600"
+                                            : "text-blue-600 bg-blue-100 border border-blue-600"
+                                        }`}>
                                         {task.priority}
                                     </span>
                                     <span className="text-xs text-gray-400">Due - {formatDate(task.dueDate)}</span>
@@ -250,9 +277,9 @@ export default function Dashboard() {
                                     <p>Status: {task.status}</p>
                                 </div>
 
-                                <div className="flex gap-3 mt-4">
+                                <div className="flex flex-col sm:flex-row gap-3 mt-4">
                                     <div>
-                                        <button className="bg-[rgb(245,239,232)] border border-[#e2d7cb99] text-gray-700 font-semibold px-4 py-1 rounded-xl flex items-center justify-center gap-1"
+                                        <button className="w-full bg-[rgb(245,239,232)] border border-[#e2d7cb99] text-gray-700 font-semibold px-4 py-1 rounded-xl flex items-center justify-center gap-1"
                                             onClick={() => handleEditClick(task)}
                                         >
                                             <MdOutlineEdit size={18} />
@@ -260,7 +287,7 @@ export default function Dashboard() {
                                         </button>
                                     </div>
                                     <div>
-                                        <button className="bg-[rgb(245,239,232)] border border-[#e2d7cb99] text-gray-700 font-semibold px-4 py-1 rounded-xl flex items-center justify-center gap-1"
+                                        <button className="w-full bg-[rgb(245,239,232)] border border-[#e2d7cb99] text-gray-700 font-semibold px-4 py-1 rounded-xl flex items-center justify-center gap-1"
                                             onClick={() => deleteTask(task.taskId)}
                                         >
                                             <HiOutlineTrash size={18} />
