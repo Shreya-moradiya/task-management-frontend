@@ -29,6 +29,15 @@ export default function Login() {
                 localStorage.setItem("companyId", String(companyId));
             }
 
+            const userName =
+                response?.name ??
+                response?.user?.name ??
+                response?.fullName ??
+                response?.user?.fullName;
+            if (userName && String(userName).trim() !== "") {
+                localStorage.setItem("userName", String(userName).trim());
+            }
+
             setFormData((prev) => ({ ...prev, password: "", email: "", role: "", rememberMe: false, ...response }));
             // setFormData(response)
             navigate("/dashboard");

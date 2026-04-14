@@ -6,7 +6,8 @@ import { HiOutlineTrash } from "react-icons/hi";
 import EditTask from "../EditTask/EditTask";
 import Swal from "sweetalert2";
 import AddUser from "../AddUser/AddUser";
-import { FiMenu } from "react-icons/fi";
+import { FiLogOut, FiMenu } from "react-icons/fi";
+import { useNavigate } from "react-router-dom";
 
 function formatDate(dateString) {
     if (!dateString) return "—";
@@ -27,6 +28,8 @@ export default function Dashboard() {
     const [loading, setLoading] = useState(false);
     const [addUserOpen, setAddUserOpen] = useState(false);
     const [menuOpen, setMenuOpen] = useState(false);
+    const navigate = useNavigate();
+    const userName = localStorage.getItem("userName") || "User";
     const fetchTasks = async () => {
         try {
             const response = await GetTask();
@@ -133,6 +136,37 @@ export default function Dashboard() {
         }
     }
 
+    const handleLogout = () => {
+        localStorage.removeItem("authToken");
+        localStorage.removeItem("companyId");
+        localStorage.removeItem("userName");
+        navigate("/");
+    }
+
+    const confirmLogout = async () => {
+        const result = await Swal.fire({
+            icon: "warning",
+            title: "Logout?",
+            text: "Are you sure you want to logout?",
+            showCancelButton: true,
+            confirmButtonText: "Yes, Logout",
+            cancelButtonText: "Cancel",
+            confirmButtonColor: "#f16022",
+            cancelButtonColor: "#d33",
+        });
+
+        if (result.isConfirmed) {
+            await Swal.fire({
+                icon: "success",
+                title: "Logged out",
+                text: "You have been logged out successfully.",
+                timer: 1500,
+                showConfirmButton: false,
+            });
+            handleLogout();
+        }
+    }
+
     return (
         <div>
             <AddTask isOpen={addOpen} onClose={() => setAddOpen(false)} />
@@ -176,15 +210,15 @@ export default function Dashboard() {
                             </button>
                         </div>
 
-                        <div className="relative flex flex-1 items-center gap-2 sm:gap-3 lg:flex-none">
+                        <div className="relative flex items-center gap-2 sm:gap-3">
                             <input
                                 placeholder="Search tasks..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
-                                className="w-full px-4 py-2 rounded-2xl bg-white shadow-sm outline-none sm:w-[260px] lg:w-64"
+                                className="w-[180px] sm:w-[260px] lg:w-64 px-4 py-2 rounded-2xl bg-white shadow-sm outline-none"
                             />
                             {suggestions.length > 0 && (
-                                <div className="absolute left-0 top-full z-20 mt-1 bg-white rounded-lg shadow-lg w-full sm:w-[260px] lg:w-64 max-h-60 overflow-y-auto border border-gray-100">
+                                <div className="absolute left-0 top-full z-20 mt-1 bg-white rounded-lg shadow-lg w-[180px] sm:w-[260px] lg:w-64 max-h-60 overflow-y-auto border border-gray-100">
                                     {suggestions.map((s, i) => (
                                         <div
                                             key={i}
@@ -209,6 +243,8 @@ export default function Dashboard() {
                                 <span className="sm:hidden">+ Add</span>
                                 <span className="hidden sm:inline">+ Add employee</span>
                             </button>
+                            <div className="text-sm text-gray-800 font-medium truncate max-w-[120px] sm:max-w-[180px]">{userName}</div>
+                            <button className="text-2xl text-gray-800" onClick={confirmLogout}><FiLogOut /></button>
                         </div>
                     </div>
                 </div>
