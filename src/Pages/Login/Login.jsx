@@ -38,6 +38,17 @@ export default function Login() {
                 localStorage.setItem("userName", String(userName).trim());
             }
 
+            const userRole =
+                response?.role ??
+                response?.user?.role ??
+                response?.user?.roles ??
+                (response?.user?.roles && Array.isArray(response.user.roles)
+                    ? response.user.roles[0]
+                    : null);
+            if (userRole && String(userRole).trim() !== "") {
+                localStorage.setItem("userRole", String(userRole).trim());
+            }
+
             setFormData((prev) => ({ ...prev, password: "", email: "", role: "", rememberMe: false, ...response }));
             // setFormData(response)
             navigate("/dashboard");

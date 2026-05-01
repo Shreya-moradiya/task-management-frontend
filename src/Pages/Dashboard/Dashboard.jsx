@@ -1,4 +1,4 @@
-import { DeleteTask, GetTask, TaskById, TaskTitle } from "./Services/DashboardService";
+import { DeleteTask, GetTask, MarkCompleted, TaskById, TaskTitle } from "./Services/DashboardService";
 import { useEffect, useMemo, useState } from "react";
 import AddTask from "../AddTask/AddTask";
 import { MdOutlineEdit } from "react-icons/md";
@@ -28,8 +28,11 @@ export default function Dashboard() {
     const [loading, setLoading] = useState(false);
     const [addUserOpen, setAddUserOpen] = useState(false);
     const [menuOpen, setMenuOpen] = useState(false);
+    const [taskToggles, setTaskToggles] = useState({});
     const navigate = useNavigate();
     const userName = localStorage.getItem("userName") || "User";
+    const userInitial = userName.trim().charAt(0).toUpperCase() || "U";
+    const userRole = localStorage.getItem("userRole") || "Employee";
     const fetchTasks = async () => {
         try {
             const response = await GetTask();
@@ -103,12 +106,6 @@ export default function Dashboard() {
         });
     }, [tasks, search]);
 
-    // const total = tasks.length;
-    // const toDo = tasks.filter((t) => (t.status || "").toLowerCase() === "pending" || (t.status || "").toLowerCase() === "to do").length;
-    // const inProgress = tasks.filter((t) => (t.status || "").toLowerCase().includes("progress")).length;
-    // const completed = tasks.filter((t) => (t.status || "").toLowerCase() === "completed" || (t.status || "").toLowerCase() === "done").length;
-    // const openCount = toDo + inProgress;
-
     const deleteTask = async (taskId) => {
         const resultSwal = await Swal.fire({
             icon: "warning",
@@ -167,6 +164,36 @@ export default function Dashboard() {
         }
     }
 
+    const handleTaskToggle = (taskId) => {
+        setTaskToggles((prev) => ({
+            ...prev,
+            [taskId]: !prev[taskId],
+        }));
+    };
+
+    const handleMarkCompleted = async (taskId) => {
+        try {
+            await MarkCompleted(taskId, "Completed");
+            await fetchTasks();
+            await Swal.fire({
+                icon: "success",
+                title: "Task Marked as Completed",
+                text: "The task has been marked as completed successfully.",
+                timer: 2000,
+                showConfirmButton: false,
+            });
+            return true;
+        } catch (error) {
+            console.error("Error marking task as completed:", error);
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: "Unable to mark task as completed. Please try again.",
+            });
+            return false;
+        }
+    }
+
     return (
         <div>
             <AddTask isOpen={addOpen} onClose={() => setAddOpen(false)} />
@@ -180,7 +207,6 @@ export default function Dashboard() {
             />
             <AddUser isOpen={addUserOpen} onClose={() => setAddUserOpen(false)} />
             <div className="min-h-screen bg-[#f5efe8] pb-6 pt-0 font-sans relative overflow-hidden">
-                {/* Global background shade like design (subtle diagonal sky tint) */}
                 <div className="absolute inset-0 -z-0"
                     style={{
                         background: `radial-gradient(circle at 95% 5%, rgba(207,232,243,0.9) 0%, rgba(207,232,243,0.6) 18%, rgba(207,232,243,0.25) 30%, transparent 45%),
@@ -243,8 +269,22 @@ export default function Dashboard() {
                                 <span className="sm:hidden">+ Add</span>
                                 <span className="hidden sm:inline">+ Add employee</span>
                             </button>
-                            <div className="text-sm text-gray-800 font-medium truncate max-w-[120px] sm:max-w-[180px]">{userName}</div>
-                            <button className="text-2xl text-gray-800" onClick={confirmLogout}><FiLogOut /></button>
+                            <div className="rounded-2xl border border-orange-100 bg-white/85 px-2 py-1.5 shadow-sm">
+                                <div className="flex flex-col items-center gap-1">
+                                    <div className="h-9 w-9 rounded-full bg-[#f16022] text-white flex items-center justify-center text-sm font-bold shadow-sm">
+                                        {userInitial}
+                                    </div>
+                                    <button
+                                        type="button"
+                                        className="h-6 w-6 rounded-md text-gray-600 hover:text-[#f16022] hover:bg-orange-50 transition-colors flex items-center justify-center"
+                                        onClick={confirmLogout}
+                                        aria-label="Logout"
+                                        title="Logout"
+                                    >
+                                        <FiLogOut className="text-base" />
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -258,10 +298,6 @@ export default function Dashboard() {
                         </button>
 
                         {[
-                            // { label: "TOTAL TASKS", value: 4, color: "bg-[#f16022]", icon: <LuLayoutGrid size={25} color="#fff" /> },
-                            // { label: "TO DO", value: 1, color: "bg-[#1E94B7]", icon: <MdChecklist size={25} color="#fff" /> },
-                            // { label: "IN PROGRESS", value: 2, color: "bg-[#f16022]", icon: <LuTimer size={25} color="#fff" /> },
-                            // { label: "COMPLETED", value: 1, color: "bg-gradient-to-br from-[#1e8fb8] to-[#3184e3]", icon: <FaRegCheckCircle size={25} color="#fff" /> },
                         ].map((item, i) => (
                             <div key={i} className="bg-white rounded-2xl p-4 flex justify-between items-center shadow-sm">
                                 <div>
@@ -275,63 +311,106 @@ export default function Dashboard() {
                         ))}
                     </div>
 
-                    {/* Tabs */}
-                    {/* <div className="bg-white rounded-full p-2 flex gap-2 mt-6 w-fit shadow-sm">
-                        <button className="bg-[#f16022] text-white px-4 py-2 rounded-full">
-                            All Tasks
-                        </button>
-                        <button className="px-4 py-2 bg-[#1E94B7] text-white rounded-full">To Do</button>
-                        <button className="px-4 py-2 text-gray-600">In Progress</button>
-                        <button className="px-4 py-2 text-gray-600">Completed</button>
-                    </div> */}
-
                     {/* Cards */}
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mt-6">
                         {displayedTasks.map((task, index) => (
-                            <div key={index} className="bg-white rounded-2xl p-5 shadow-sm border-b-4 border-orange-300">
-                                <div className="flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-center mb-3">
-                                    <span className={`text-xs bg-red-100 px-2 py-1 rounded-full ${task.priority === "High"
-                                        ? "text-red-600 bg-red-100 border border-red-600"
-                                        : task.priority === "Medium"
-                                            ? "text-yellow-600 bg-yellow-100 border border-yellow-600"
-                                            : "text-blue-600 bg-blue-100 border border-blue-600"
-                                        }`}>
-                                        {task.priority}
-                                    </span>
-                                    <span className="text-xs text-gray-400">Due - {formatDate(task.dueDate)}</span>
-                                </div>
+                            (() => {
+                                const isCompleted = (task.status || "").toLowerCase() === "completed";
+                                const isSwitchOn = isCompleted || Boolean(taskToggles[task.taskId]);
+                                return (
+                                    <div key={index} className="bg-white rounded-2xl p-5 shadow-sm border-b-4 border-orange-300">
+                                        <div className="mb-3">
+                                            <div className="flex items-start justify-between gap-3">
+                                                <div className="flex items-center gap-2">
+                                                    <span className={`text-xs px-2 py-1 rounded-full ${task.priority === "High"
+                                                        ? "text-red-600 bg-red-100 border border-red-600"
+                                                        : task.priority === "Medium"
+                                                            ? "text-yellow-600 bg-yellow-100 border border-yellow-600"
+                                                            : "text-blue-600 bg-blue-100 border border-blue-600"
+                                                        }`}>
+                                                        {task.priority}
+                                                    </span>
+                                                    {isCompleted && (
+                                                        <span className="text-xs px-2 py-1 rounded-full bg-emerald-100 border border-emerald-500 text-emerald-700 font-semibold">
+                                                            Completed
+                                                        </span>
+                                                    )}
+                                                </div>
 
-                                <h3 className="font-semibold text-lg text-gray-800">
-                                    {task.title}
-                                </h3>
-                                <p className="text-sm text-gray-600 mt-1">
-                                    {task.description}
-                                </p>
+                                                <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-full px-2 py-1">
+                                                    <span className="text-xs font-semibold text-slate-700">Mark Completed</span>
+                                                    <button
+                                                        type="button"
+                                                        role="switch"
+                                                        aria-checked={isSwitchOn}
+                                                        aria-label="Toggle task switch"
+                                                        disabled={isCompleted}
+                                                        onClick={async () => {
+                                                            handleTaskToggle(task.taskId);
+                                                            const isSuccess = await handleMarkCompleted(task.taskId);
+                                                            if (!isSuccess) {
+                                                                handleTaskToggle(task.taskId);
+                                                            }
+                                                        }}
+                                                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-all duration-200 shadow-inner ${isSwitchOn
+                                                            ? "bg-emerald-600"
+                                                            : "bg-slate-300"
+                                                            } ${isCompleted ? "cursor-not-allowed opacity-80" : ""}`}
+                                                    >
+                                                        <span
+                                                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${isSwitchOn
+                                                                ? "translate-x-6"
+                                                                : "translate-x-1"
+                                                                }`}
+                                                        />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <span className="mt-2 inline-block text-xs text-gray-400">Due - {formatDate(task.dueDate)}</span>
+                                        </div>
 
-                                <div className="bg-[rgb(245,239,232)] border border-[#e2d7cb99] rounded-xl p-3 mt-4 text-sm text-gray-600">
-                                    <p>Updated: {task.updatedAt ? formatDate(task.updatedAt) : "*"}</p>
-                                    <p>Status: {task.status}</p>
-                                </div>
+                                        <h3 className={`font-semibold text-lg ${isCompleted ? "text-emerald-700" : "text-gray-800"}`}>
+                                            {task.title}
+                                        </h3>
+                                        <p className={`text-sm mt-1 ${isCompleted ? "text-emerald-700" : "text-gray-600"}`}>
+                                            {task.description}
+                                        </p>
 
-                                <div className="flex flex-col sm:flex-row gap-3 mt-4">
-                                    <div>
-                                        <button className="w-full bg-[rgb(245,239,232)] border border-[#e2d7cb99] text-gray-700 font-semibold px-4 py-1 rounded-xl flex items-center justify-center gap-1"
-                                            onClick={() => handleEditClick(task)}
-                                        >
-                                            <MdOutlineEdit size={18} />
-                                            Edit
-                                        </button>
+                                        <div className="bg-[rgb(245,239,232)] border border-[#e2d7cb99] rounded-xl p-3 mt-4 text-sm text-gray-600">
+                                            <p>Updated: {task.updatedAt ? formatDate(task.updatedAt) : "*"}</p>
+                                            <p>Status: {task.status}</p>
+                                            <p>Assigned To: {task.assignTo ? task.assignTo.name : "-"}</p>
+                                        </div>
+                                        {isCompleted && (
+                                            <div className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700">
+                                                This task is completed.
+                                            </div>
+                                        )}
+
+                                        {
+                                            userRole === "admin" && (<div className="flex flex-col sm:flex-row gap-3 mt-4">
+                                                <div>
+                                                    <button className="w-full bg-[rgb(245,239,232)] border border-[#e2d7cb99] text-gray-700 font-semibold px-4 py-1 rounded-xl flex items-center justify-center gap-1"
+                                                        onClick={() => handleEditClick(task)}
+                                                    >
+                                                        <MdOutlineEdit size={18} />
+                                                        Edit
+                                                    </button>
+                                                </div>
+                                                <div>
+                                                    <button className="w-full bg-[rgb(245,239,232)] border border-[#e2d7cb99] text-gray-700 font-semibold px-4 py-1 rounded-xl flex items-center justify-center gap-1"
+                                                        onClick={() => deleteTask(task.taskId)}
+                                                    >
+                                                        <HiOutlineTrash size={18} />
+                                                        Delete
+                                                    </button>
+                                                </div>
+                                            </div>)
+                                        }
+
                                     </div>
-                                    <div>
-                                        <button className="w-full bg-[rgb(245,239,232)] border border-[#e2d7cb99] text-gray-700 font-semibold px-4 py-1 rounded-xl flex items-center justify-center gap-1"
-                                            onClick={() => deleteTask(task.taskId)}
-                                        >
-                                            <HiOutlineTrash size={18} />
-                                            Delete
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
+                                );
+                            })()
                         ))}
                     </div>
                 </div>

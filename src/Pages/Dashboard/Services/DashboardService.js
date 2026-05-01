@@ -19,3 +19,8 @@ export const DeleteTask = async (taskId) => {
     const response = await AxiosInstance.delete(`/api/deleteTask/${taskId}`);
     return response.data;
 }
+
+export const MarkCompleted = async (taskId, status) => {
+    const response = await AxiosInstance.post(`/api/updateTaskStatus/${taskId}`, { status });
+    return response.data;
+}
